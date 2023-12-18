@@ -27,11 +27,18 @@ app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 hom
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 
-const handleConnection = (client) => {
-  console.log(client) // socket : 연결된 클라이언트 즉, 브라우저와의 contact라인이다. 해당 객체를 이용하여 메시지를 주고받을 수 있다. (연결해제를 위해 저장해야함)
+wss.on("connection", (socket) => { // socket : 연결된 클라이언트 즉, 브라우저와의 contact라인이다. 해당 객체를 이용하여 메시지를 주고받을 수 있다. (연결해제를 위해 저장해야함)
+  socket.send("Connected to Server✅ - Sended By server.js")
+  
+  /* 브라우저 종료시 소켓 종료 */
+  socket.on("close", ()=> {
+    console.log("Disconnected From the Server ❌")
+  })
 
-}
-wss.on("connection", handleConnection)
+  socket.addEventListener("message", (message)=>{
+    console.log("Message from client ",message.data) //app.js로부터 메시지 수신
+  })
+})
 
 const handleListen = () => console.log(`Listening on http://localhost:${port}`)
 server.listen(port, handleListen)
