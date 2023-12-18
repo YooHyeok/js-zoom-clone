@@ -27,8 +27,19 @@ app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 hom
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 
+const sockets = []
+
+/**
+ * 축적된 모든 Socket들에게 메시지 전송 함수
+ * @param {*} msg 
+ */
+function send(msg) {
+  sockets.forEach(aSocket=>aSocket.send(msg))
+}
+
 wss.on("connection", (socket) => { // socket : 연결된 클라이언트 즉, 브라우저와의 contact라인이다. 해당 객체를 이용하여 메시지를 주고받을 수 있다. (연결해제를 위해 저장해야함)
-  socket.send("Connected to Server✅ - Sended By server.js")
+  sockets.push(socket) // 사용자가 접속할 때 마다 배열에 소켓클라이언트를 축적
+  send("Connected to Server✅ - Sended By server.js")
   
   /* 브라우저 종료시 소켓 종료 */
   socket.on("close", ()=> {
@@ -36,7 +47,8 @@ wss.on("connection", (socket) => { // socket : 연결된 클라이언트 즉, �
   })
 
   socket.addEventListener("message", (message)=>{
-    console.log("Message from client ",message.data) //app.js로부터 메시지 수신
+    // console.log("Message from client ",message.data) //app.js로부터 메시지 수신
+    send(message.data)
   })
 })
 
