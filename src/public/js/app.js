@@ -1,3 +1,6 @@
+const messageList = document.querySelector("ul")
+const messageForm = document.querySelector("form")
+
 const socket = new WebSocket(`ws://${window.location.host}`)
 
 // 연결이 열리면
@@ -16,9 +19,13 @@ socket.addEventListener("close", () => {
 })
 
 /**
- * 10초 후 메시지 전송
- * send() 함수를 통해 메시지를 서버로 전송한다.
+ * Enter혹은 send버튼클릭시 서버에 메시지 전송
+ * @param {*} event 
  */
-setTimeout(() => {
-  socket.send("ㅁㄴ엠네렘ㄴ렘ㄴ레")
-}, 10000)
+function handleSubmit(event) {
+  event.preventDefault();
+  const input = messageForm.querySelector("input")
+  socket.send(input.value);
+  input.value = "";
+}
+messageForm.addEventListener("submit", handleSubmit)
