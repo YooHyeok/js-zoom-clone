@@ -1,4 +1,10 @@
+import http from "http"
+import WebSocket from "ws";
 import express from "express"
+
+
+const port = 3000;
+
 const app = express();
 
 app.set('view engine', 'pug') //view 엔진을 pug 로 설정 (spring의 view resolver처럼 suffix에 해당)
@@ -13,7 +19,13 @@ app.get("/", (req, res)=>{
 })
 app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 home을 렌더링한다.
 
-const port = 3000;
-const handleListen = () => console.log(`Listening on http://localhost:${port}`)
 
-app.listen(port, handleListen)
+/**
+ * Http 서버 위에 ws서버를 구동
+ * 동일한 포트로 서버를 구성하기 위해 WebSocket서버와 Http 서버를 동시에 구성한다.
+*/
+const server = http.createServer(app)
+const wss = new WebSocket.Server({ server })
+
+const handleListen = () => console.log(`Listening on http://localhost:${port}`)
+server.listen(port, handleListen)
