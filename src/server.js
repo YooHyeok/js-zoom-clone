@@ -27,5 +27,11 @@ app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 hom
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 
+const handleConnection = (client) => {
+  console.log(client) // socket : 연결된 클라이언트 즉, 브라우저와의 contact라인이다. 해당 객체를 이용하여 메시지를 주고받을 수 있다. (연결해제를 위해 저장해야함)
+
+}
+wss.on("connection", handleConnection)
+
 const handleListen = () => console.log(`Listening on http://localhost:${port}`)
 server.listen(port, handleListen)

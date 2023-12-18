@@ -1,1 +1,1 @@
-alert("즐asmdasdaspda");
+const socket = new WebSocket(`ws://${window.location.host}`)
