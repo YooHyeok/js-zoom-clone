@@ -53,14 +53,13 @@ wss.on("connection", (socket) => { // socket : 연결된 클라이언트 즉, �
     const parsedMessage = JSON.parse(message);
     switch (parsedMessage.type) {
       case "new_message":
-        console.log(socket.nickname)
         send(`${socket.nickname}: ${parsedMessage.payload}`)
         break;
       case "nickname": // 현재 socket에 닉네임 추가
         socket["nickname"] = parsedMessage.payload; //socket 은 기본적으로 객체 형태이므로 속성을 자유롭게 추가할 수 있다.
         break;
       default:
-        send(`${socket.nickname}: ${parsedMessage.payload}`)
+        send(`[${socket.nickname}] ${parsedMessage.payload}`)
         break;
     }
 
