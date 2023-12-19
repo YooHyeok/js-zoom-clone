@@ -1,6 +1,6 @@
-import http from "http"
-import WebSocket from "ws";
-import express from "express"
+import http from "http" // nodejs 내장기능
+import WebSocket from "ws"; //npm i websocket
+import express from "express" //npm i express
 
 
 const port = 3000;
@@ -15,7 +15,7 @@ app.use("/public", express.static(__dirname + "/public")) // 정적파일 공유
 //따라서 view 엔진인 pug파일에서 해당 script파일을 읽어들여와 정상적으로 실행시켜주게 된다
 
 app.get("/", (req, res)=>{
-  res.render("home") // get함수에 지정한 매핑주소로 접속시 home을 렌더링한다. render에 전달받은 매개변수는 view정보이며 파일명의 prefix에 해당한다. (spring의 view resolver처럼 home.pug로 변한됨)
+  res.render("home-websocket") // get함수에 지정한 매핑주소로 접속시 home을 렌더링한다. render에 전달받은 매개변수는 view정보이며 파일명의 prefix에 해당한다. (spring의 view resolver처럼 home.pug로 변한됨)
 })
 app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 home을 렌더링한다.
 
@@ -25,7 +25,7 @@ app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 hom
  * 동일한 포트로 서버를 구성하기 위해 WebSocket서버와 Http 서버를 동시에 구성한다.
 */
 const server = http.createServer(app)
-const wss = new WebSocket.Server({ server })
+const wsServer = new WebSocket.Server({ server })
 
 let sockets = []
 /**
@@ -37,7 +37,7 @@ function send(msg) {
 }
 
 let i = 0;
-wss.on("connection", (socket) => { // socket : 연결된 클라이언트 즉, 브라우저와의 contact라인이다. 해당 객체를 이용하여 메시지를 주고받을 수 있다. (연결해제를 위해 저장해야함)
+wsServer.on("connection", (socket) => { // socket : 연결된 클라이언트 즉, 브라우저와의 contact라인이다. 해당 객체를 이용하여 메시지를 주고받을 수 있다. (연결해제를 위해 저장해야함)
   sockets.push(socket) // 사용자가 접속할 때 마다 배열에 소켓클라이언트를 축적
   socket["nickname"] = ("Anon" + sockets.indexOf(socket))
   
