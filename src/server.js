@@ -27,8 +27,7 @@ app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 hom
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 
-const sockets = []
-
+let sockets = []
 /**
  * 축적된 모든 Socket들에게 메시지 전송 함수
  * @param {*} msg 
@@ -37,18 +36,34 @@ function send(msg) {
   sockets.forEach(aSocket=>aSocket.send(msg))
 }
 
+let i = 0;
 wss.on("connection", (socket) => { // socket : 연결된 클라이언트 즉, 브라우저와의 contact라인이다. 해당 객체를 이용하여 메시지를 주고받을 수 있다. (연결해제를 위해 저장해야함)
   sockets.push(socket) // 사용자가 접속할 때 마다 배열에 소켓클라이언트를 축적
-  send("Connected to Server✅ - Sended By server.js")
+  socket["nickname"] = ("Anon" + sockets.indexOf(socket))
   
   /* 브라우저 종료시 소켓 종료 */
   socket.on("close", ()=> {
     console.log("Disconnected From the Server ❌")
+    send("Disconnected From the Server ❌")
+    sockets = sockets.filter(sock => sock !== socket)
   })
 
-  socket.addEventListener("message", (message)=>{
-    // console.log("Message from client ",message.data) //app.js로부터 메시지 수신
-    send(message.data)
+  /* 메시지  */
+  socket.on("message", (message)=>{ // on이 아닌 addEventListener도 가능 - message.data로 접근해야함
+    const parsedMessage = JSON.parse(message);
+    switch (parsedMessage.type) {
+      case "new_message":
+        console.log(socket.nickname)
+        send(`${socket.nickname}: ${parsedMessage.payload}`)
+        break;
+      case "nickname": // 현재 socket에 닉네임 추가
+        socket["nickname"] = parsedMessage.payload; //socket 은 기본적으로 객체 형태이므로 속성을 자유롭게 추가할 수 있다.
+        break;
+      default:
+        send(`${socket.nickname}: ${parsedMessage.payload}`)
+        break;
+    }
+
   })
 })
 
