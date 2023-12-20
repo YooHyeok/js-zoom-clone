@@ -28,7 +28,12 @@ const server = http.createServer(app)
 const ioServer = SocketIO(server) // http://localhost:3000/socket.io/socket.io.js 접속이 가능해진다.
 
 ioServer.on("connection", socket => {
-  console.log(socket)
+  socket.on("enter_room", (message, callback) => {
+    setTimeout(()=>{
+      callback();
+    }, 10000)
+    console.log(message)
+  })
 })
 
 
