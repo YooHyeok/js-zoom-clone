@@ -28,11 +28,21 @@ const server = http.createServer(app)
 const ioServer = SocketIO(server) // http://localhost:3000/socket.io/socket.io.js 접속이 가능해진다.
 
 ioServer.on("connection", socket => {
-  socket.on("enter_room", (message, callback) => {
-    setTimeout(()=>{
-      callback();
-    }, 10000)
-    console.log(message)
+  /**
+     * onAny(미들웨어) 어느 이벤트이든지 console.log할 수 있다.
+     */
+  socket.onAny((event)=> {
+    console.log(`Socket Event: ${event}`)
+  })
+  socket.on("enter_room", (roomname, callback) => {
+    console.log(socket.id)
+    console.log(socket.rooms)
+    socket.join(roomname) // 입장
+    console.log(socket.rooms)
+    socket.to(roomname) // 룸 참여자 전체에게 메시지 전송
+    socket.leave(roomname) // 퇴장
+    callback();
+  
   })
 })
 
