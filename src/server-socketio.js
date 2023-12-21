@@ -34,15 +34,18 @@ ioServer.on("connection", socket => {
   socket.onAny((event)=> {
     console.log(`Socket Event: ${event}`)
   })
+  /**
+   * socket.emit("roomId", "Message", callback) // event, 메시지, 콜백함수를 emit(방출)
+   * socket.on("roomId", (...msg, callback)=>{}) // 일반적인 socket event 혹은 emit된 event를 대상으로 콜백 함수 핸들러
+   * socket.join(roomId) // 나를 포함하여 소켓에 roomid를 등록
+   * socket.to(roomId) // 나를 제외한 룸 참여자 전체를 대상으로
+   * socket.leave(roomId) // join된 ID를 제거함으로써 Room에서 나간다.
+   */
   socket.on("enter_room", (roomname, callback) => {
-    console.log(socket.id)
-    console.log(socket.rooms)
-    socket.join(roomname) // 입장
-    console.log(socket.rooms)
-    socket.to(roomname) // 룸 참여자 전체에게 메시지 전송
-    socket.leave(roomname) // 퇴장
+    socket.join(roomname)
     callback();
-  
+    socket.to(roomname).emit("welcome", "SomeOne Joined!"); // 나를 제외한 join한 모든 client ID에게 event emit
+    
   })
 })
 
