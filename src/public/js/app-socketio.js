@@ -6,7 +6,6 @@
  * io를 호출하면 socket.js의 Socket 클래스를 오브젝트화 하는것같다.
  */
 const socket = io();
-console.log(socket)
 
 /* View - Element */
 const welcome = document.getElementById("welcome")
@@ -14,13 +13,14 @@ const form = welcome.querySelector("form")
 const room = document.getElementById("room")
 room.hidden = true // 룸 비활성화
 
+let roomname;
+
 /**
  * Room 영역을 활성화 시킨다
  * 메시지를 입력하는 영역이 활성화된다.
  * Welcom 영역을 비활성화 시킨다
  * 룸정보를 입력하는 영역이 비활성화 된다.
  */
-let roomname;
 function showRoom() {
   welcome.hidden = true;
   room.hidden = false
@@ -28,6 +28,11 @@ function showRoom() {
   h3.innerText = `Room ${roomname}`
 }
 
+/**
+ * 채팅 room name 입력후 
+ * EnterRoom 버튼 클릭시 실행되는 함수
+ * @param {*} event 
+ */
 function handleRoomSubmit(event) {
   event.preventDefault();
   const input = form.querySelector("input")
@@ -46,11 +51,13 @@ function handleRoomSubmit(event) {
   roomname = input.value;
   socket.emit("enter_room", roomname, showRoom);
   input.value = ""
-
-
 }
 form.addEventListener("submit", handleRoomSubmit);
 
+/**
+ * 메시지 목록 출력 함수
+ * @param {*} message 
+ */
 function addMessage(message) {
   console.log(message)
   const ul = room.querySelector("ul")
@@ -59,6 +66,18 @@ function addMessage(message) {
   ul.appendChild(li);
 }
 
+/**
+ * 채팅 room 입장시 메시지 전송 함수
+ * 나를 제외한 다른 클라이언트 대상
+ */
 socket.on("welcome", (message) => {
+  addMessage(message)
+})
+
+/**
+ * 브라우저 종료시 메시지 전송 함수
+ * 나를 제외한 다른 클라이언트 대상
+ */
+socket.on("bye", (message) => {
   addMessage(message)
 })
