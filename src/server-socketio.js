@@ -28,12 +28,14 @@ app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 hom
 const server = http.createServer(app)
 const ioServer = SocketIO(server) // http://localhost:3000/socket.io/socket.io.js 접속이 가능해진다.
 
+let connectCount = 0; // 방에 연결된 사람 수
 ioServer.on("connection", socket => {
+  
   /**
      * onAny(미들웨어) 어느 이벤트이든지 console.log할 수 있다.
      */
   socket.onAny((event)=> {
-    console.log(`Socket Event: ${event}`)
+    console.dir(`Socket Event: ${event}`)
   })
   /**
    * socket.emit("roomId", "Message", callback) // event, 메시지, 콜백함수를 emit(방출)
@@ -45,16 +47,23 @@ ioServer.on("connection", socket => {
    */
   socket.on("enter_room", (roomname, callback) => {
     socket.join(roomname)
+    socket['nickname'] = `Anon${++connectCount}`
     callback();
-    socket.to(roomname).emit("welcome", "SomeOne Joined!"); // 나를 제외한 join한 모든 client ID에게 event emit
+    socket.to(roomname).emit("welcome", `${socket.nickname}: is Joined!`); // 나를 제외한 join한 모든 client ID에게 event emit
   })
-
   /**
    * 메시지 전송
    */
   socket.on("new_message", (info, callback) => {
     callback(`You: ${info.message}`);
-    socket.to(info.roomname).emit("message", info.message);
+    socket.to(info.roomname).emit("message", `${socket.nickname}: ${info.message}`);
+  })
+
+  /**
+   * 닉네임 적용
+   */
+  socket.on("nickname", (nickname) => {
+    socket['nickname'] = nickname;
   })
 
   /**
@@ -62,7 +71,7 @@ ioServer.on("connection", socket => {
    * 브라우저 종료 혹은 새로고침 시 작동한다.
    */
   socket.on("disconnecting", (event) => {
-    socket.rooms.forEach(room => socket.to(room).emit("bye", "SomeOne Leave T.T"))
+    socket.rooms.forEach(room => socket.to(room).emit("bye", `${socket.nickname} is Leave T.T`))
   })
 })
 
