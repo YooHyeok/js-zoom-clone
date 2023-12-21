@@ -16,6 +16,22 @@ room.hidden = true // 룸 비활성화
 let roomname;
 
 /**
+ * 
+ * @param {*} event 
+ */
+async function handleMessageSubmit(event) {
+  event.preventDefault();
+  const input = room.querySelector("input") // 직계자식 뿐만아니라 손자도 가져올 수 있다...
+  /* socket.emit("new_message", {roomname: roomname, message: input.value}, ()=>{
+    addMessage(`You: ${info.value}`)
+    input.value = ""
+  }) */
+  socket.emit("new_message", {roomname: roomname, message: input.value}, addMessage)
+  input.value = ""
+  
+}
+
+/**
  * Room 영역을 활성화 시킨다
  * 메시지를 입력하는 영역이 활성화된다.
  * Welcom 영역을 비활성화 시킨다
@@ -26,6 +42,9 @@ function showRoom() {
   room.hidden = false
   const h3 = room.querySelector("h3")
   h3.innerText = `Room ${roomname}`
+  /* 활성화 됬을때 메시지 전송작업 진행 */
+  const form = room.querySelector("form")
+  form.addEventListener("submit", handleMessageSubmit)
 }
 
 /**
@@ -79,5 +98,13 @@ socket.on("welcome", (message) => {
  * 나를 제외한 다른 클라이언트 대상
  */
 socket.on("bye", (message) => {
+  addMessage(message)
+})
+
+/**
+ * 메시지 전송 함수
+ * 나를 제외한 다른 클라이언트 대상
+ */
+socket.on("message", (message) => {
   addMessage(message)
 })

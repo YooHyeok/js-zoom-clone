@@ -50,6 +50,14 @@ ioServer.on("connection", socket => {
   })
 
   /**
+   * 메시지 전송
+   */
+  socket.on("new_message", (info, callback) => {
+    callback(`You: ${info.message}`);
+    socket.to(info.roomname).emit("message", info.message);
+  })
+
+  /**
    * disconnecting - socket 핸들러 이벤트
    * 브라우저 종료 혹은 새로고침 시 작동한다.
    */
