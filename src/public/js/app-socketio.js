@@ -50,3 +50,15 @@ function handleRoomSubmit(event) {
 
 }
 form.addEventListener("submit", handleRoomSubmit);
+
+function addMessage(message) {
+  console.log(message)
+  const ul = room.querySelector("ul")
+  const li = document.createElement("li")
+  li.innerText = message;
+  ul.appendChild(li);
+}
+
+socket.on("welcome", (message) => {
+  addMessage(message)
+})
