@@ -1,6 +1,7 @@
 import http from "http"
 import SocketIO from "socket.io"; // npm i socket.io
 import express from "express"
+import { callbackify } from "util";
 
 
 const port = 3000;
@@ -38,6 +39,7 @@ ioServer.on("connection", socket => {
    * socket.emit("roomId", "Message", callback) // event, 메시지, 콜백함수를 emit(방출)
    * socket.on("roomId", (...msg, callback)=>{}) // 일반적인 socket event 혹은 emit된 event를 대상으로 콜백 함수 핸들러
    * socket.join(roomId) // 나를 포함하여 소켓에 roomid를 등록
+   * socket.rooms : set {객체}
    * socket.to(roomId) // 나를 제외한 룸 참여자 전체를 대상으로
    * socket.leave(roomId) // join된 ID를 제거함으로써 Room에서 나간다.
    */
@@ -45,10 +47,16 @@ ioServer.on("connection", socket => {
     socket.join(roomname)
     callback();
     socket.to(roomname).emit("welcome", "SomeOne Joined!"); // 나를 제외한 join한 모든 client ID에게 event emit
-    
+  })
+
+  /**
+   * disconnecting - socket 핸들러 이벤트
+   * 브라우저 종료 혹은 새로고침 시 작동한다.
+   */
+  socket.on("disconnecting", (event) => {
+    socket.rooms.forEach(room => socket.to(room).emit("bye", "SomeOne Leave T.T"))
   })
 })
-
 
 const handleListen = () => console.log(`Listening on http://localhost:${port}`)
 server.listen(port, handleListen)
