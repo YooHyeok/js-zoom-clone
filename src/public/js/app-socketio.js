@@ -19,9 +19,9 @@ let roomname;
  * 
  * @param {*} event 
  */
-async function handleMessageSubmit(event) {
+function handleMessageSubmit(event) {
   event.preventDefault();
-  const input = room.querySelector("input") // 직계자식 뿐만아니라 손자도 가져올 수 있다...
+  const input = room.querySelector("#msg input") // 직계자식 뿐만아니라 손자도 가져올 수 있다...(단, 첫번째만)
   /* socket.emit("new_message", {roomname: roomname, message: input.value}, ()=>{
     addMessage(`You: ${info.value}`)
     input.value = ""
@@ -29,6 +29,13 @@ async function handleMessageSubmit(event) {
   socket.emit("new_message", {roomname: roomname, message: input.value}, addMessage)
   input.value = ""
   
+}
+
+function handleNicknameSubmit(event) {
+  event.preventDefault();
+  const input = room.querySelector(" #name input")
+  socket.emit("nickname", input.value)
+  input.value = ""
 }
 
 /**
@@ -43,8 +50,10 @@ function showRoom() {
   const h3 = room.querySelector("h3")
   h3.innerText = `Room ${roomname}`
   /* 활성화 됬을때 메시지 전송작업 진행 */
-  const form = room.querySelector("form")
-  form.addEventListener("submit", handleMessageSubmit)
+  const msgForm = room.querySelector("#msg")
+  const nameForm = room.querySelector("#name")
+  msgForm.addEventListener("submit", handleMessageSubmit)
+  nameForm.addEventListener("submit", handleNicknameSubmit)
 }
 
 /**
