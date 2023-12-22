@@ -117,3 +117,26 @@ socket.on("bye", (message) => {
 socket.on("message", (message) => {
   addMessage(message)
 })
+
+/**
+ * 채팅방 입장 or 서버종료시 현재 서버에 실행중인 채팅방 목록
+ */
+socket.on("room_change", (rooms) => {
+  const roomList = welcome.querySelector("ul")
+  const liList = [];
+
+  /**
+   * 방에 한명만 들어온 상태에서 새로고침 
+   * rooms에서 제거된다.
+   * 따라서 roomList ul을 비운다.
+   * 비운 상태에서 다시 rooms에 있는 모든 방을 저장
+   */
+  roomList.innerHTML = "";
+
+  rooms.forEach((room)=>{
+    const li = document.createElement("li")
+    li.innerText = room;
+    liList.push(li);
+  })
+  roomList.append(...liList);
+})
