@@ -40,7 +40,6 @@ function publicRooms() {
 
   // const rooms =  ioServer.sockets.adapter.rooms; //map 데이터...
   // const sids =  ioServer.sockets.adapter.sids;
-
   
   // const {sockets: {adapter: {sids, rooms}}} = ioServer;
   const {sids, rooms} = ioServer.sockets.adapter; // 구조 분해 할당 문법
@@ -48,11 +47,15 @@ function publicRooms() {
   const publicRooms = []
   rooms.forEach((_, key)=>{
     if(sids.get(key) === undefined) { // public room key일 경우
-      publicRooms.push(key)
+      // publicRooms.push(key)
+      publicRooms.push(`(${countPublicRooms(key)}) ${key} `)
     }
   })
-  console.log(publicRooms)
   return publicRooms
+}
+
+function countPublicRooms(roomName) {
+  return ioServer.sockets.adapter.rooms.get(roomName)?.size; // roomName이 존재하지 않는다면 size를 구하지 않고 undefiend를 반환
 }
 
 let connectCount = 0; // 방에 연결된 사람 수
@@ -79,7 +82,7 @@ ioServer.on("connection", socket => {
    socket.join(roomname)
    socket['nickname'] = `Anon${++connectCount}`
    callback();
-   socket.to(roomname).emit("welcome", `${socket.nickname}: is Joined!`); // 나를 제외한 join한 모든 client ID에게 event emit
+   socket.to(roomname).emit("welcome", `${socket.nickname}: is Joined!`, countPublicRooms(roomname)); // 나를 제외한 join한 모든 client ID에게 event emit
    ioServer.sockets.emit("room_change", publicRooms()) //채팅방 입장시 현재 어플리케이션에 연결된 모든 서버에 존재하는 방 정보 전달
   })
   /**
@@ -97,14 +100,19 @@ ioServer.on("connection", socket => {
     socket['nickname'] = nickname;
   })
   socket.on("disconnect", () => {
-    ioServer.sockets.emit("room_change", publicRooms())
+    ioServer.sockets.emit("room_change", publicRooms()) //broad cast
   })
   /**
    * disconnecting - socket 핸들러 이벤트
    * 브라우저 종료 혹은 새로고침 시 작동한다.
    */
-  socket.on("disconnecting", (event) => {
-    socket.rooms.forEach(room => socket.to(room).emit("bye", `${socket.nickname} is Leave T.T`))
+  socket.on("disconnecting",
+   (event) => {
+    socket.rooms.forEach(roomname => 
+        socket
+        .to(roomname)
+        .emit("bye", `${socket.nickname} is Leave T.T`, countPublicRooms(roomname))
+      )
   })
 })
 

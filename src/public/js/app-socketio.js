@@ -98,7 +98,9 @@ function addMessage(message) {
  * 채팅 room 입장시 메시지 전송 함수
  * 나를 제외한 다른 클라이언트 대상
  */
-socket.on("welcome", (message) => {
+socket.on("welcome", (message, newCount) => {
+  const h3 = room.querySelector("h3")
+  h3.innerText = `Room ${roomname} (${newCount})`
   addMessage(message)
 })
 
@@ -106,7 +108,9 @@ socket.on("welcome", (message) => {
  * 브라우저 종료시 메시지 전송 함수
  * 나를 제외한 다른 클라이언트 대상
  */
-socket.on("bye", (message) => {
+socket.on("bye", (message, newCount) => {
+  const h3 = room.querySelector("h3")
+  h3.innerText = `Room ${roomname} (${newCount})`
   addMessage(message)
 })
 
@@ -121,10 +125,10 @@ socket.on("message", (message) => {
 /**
  * 채팅방 입장 or 서버종료시 현재 서버에 실행중인 채팅방 목록
  */
-socket.on("room_change", (rooms) => {
+socket.on("room_change",  rooms => {
   const roomList = welcome.querySelector("ul")
   const liList = [];
-
+  console.log(rooms)
   /**
    * 방에 한명만 들어온 상태에서 새로고침 
    * rooms에서 제거된다.
