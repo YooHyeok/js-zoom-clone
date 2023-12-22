@@ -45,25 +45,27 @@ function publicRooms() {
   // const {sockets: {adapter: {sids, rooms}}} = ioServer;
   const {sids, rooms} = ioServer.sockets.adapter; // 구조 분해 할당 문법
 
+  const publicRooms = []
   rooms.forEach((_, key)=>{
-    const publicRooms = []
     if(sids.get(key) === undefined) { // public room key일 경우
       publicRooms.push(key)
     }
   })
-
+  console.log(publicRooms)
   return publicRooms
 }
 
 let connectCount = 0; // 방에 연결된 사람 수
 ioServer.on("connection", socket => {
   
+  
+  
   /**
-     * onAny(미들웨어) 어느 이벤트이든지 console.log할 수 있다.
-     */
-  socket.onAny((event)=> {
-
-    console.dir(`Socket Event: ${event}`)
+   * onAny(미들웨어) 어느 이벤트이든지 console.log할 수 있다.
+   */
+ socket.onAny((event)=> {
+   
+   console.dir(`Socket Event: ${event}`)
   })
   /**
    * socket.emit("roomId", "Message", callback) // event, 메시지, 콜백함수를 emit(방출)
@@ -72,12 +74,13 @@ ioServer.on("connection", socket => {
    * socket.rooms : set {객체}
    * socket.to(roomId) // 나를 제외한 룸 참여자 전체를 대상으로
    * socket.leave(roomId) // join된 ID를 제거함으로써 Room에서 나간다.
-   */
-  socket.on("enter_room", (roomname, callback) => {
-    socket.join(roomname)
-    socket['nickname'] = `Anon${++connectCount}`
-    callback();
-    socket.to(roomname).emit("welcome", `${socket.nickname}: is Joined!`); // 나를 제외한 join한 모든 client ID에게 event emit
+  */
+ socket.on("enter_room", (roomname, callback) => {
+   socket.join(roomname)
+   socket['nickname'] = `Anon${++connectCount}`
+   callback();
+   socket.to(roomname).emit("welcome", `${socket.nickname}: is Joined!`); // 나를 제외한 join한 모든 client ID에게 event emit
+   ioServer.sockets.emit("room_change", publicRooms()) //채팅방 입장시 현재 어플리케이션에 연결된 모든 서버에 존재하는 방 정보 전달
   })
   /**
    * 메시지 전송
@@ -93,7 +96,9 @@ ioServer.on("connection", socket => {
   socket.on("nickname", (nickname) => {
     socket['nickname'] = nickname;
   })
-
+  socket.on("disconnect", () => {
+    ioServer.sockets.emit("room_change", publicRooms())
+  })
   /**
    * disconnecting - socket 핸들러 이벤트
    * 브라우저 종료 혹은 새로고침 시 작동한다.
