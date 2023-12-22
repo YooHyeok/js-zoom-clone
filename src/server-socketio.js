@@ -1,8 +1,8 @@
 import http from "http"
-import SocketIO from "socket.io"; // npm i socket.io
+// import {SocketIO} from "socket.io"; // npm i socket.io
+import {SocketIo, Server} from "socket.io"; // npm i socket.io
+import {instrument} from "@socket.io/admin-ui"
 import express from "express"
-import { callbackify } from "util";
-
 
 const port = 3000;
 
@@ -26,7 +26,25 @@ app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 hom
  * 동일한 포트로 서버를 구성하기 위해 socket.io서버와 Http 서버를 동시에 구성한다.
 */
 const server = http.createServer(app)
-const ioServer = SocketIO(server) // http://localhost:3000/socket.io/socket.io.js 접속이 가능해진다.
+// const ioServer = SocketIO(server) // http://localhost:3000/socket.io/socket.io.js 접속이 가능해진다.
+
+/**
+ * socket.io를 관리하는 관리자 페이지
+ * https://admin.socket.io 접속
+ * Connection의 ServerUrl에 https://localhost:3000 입력
+ * 접속완료!
+ */
+const ioServer = new Server(server, {
+  cors: {
+    origin: ["https://admin.socket.io"],
+    credentials: true
+  }
+});
+
+instrument(ioServer, {
+  auth: false,
+  mode: "development",
+});
 
 /**
  * public Room key(room id) 배열 반환
