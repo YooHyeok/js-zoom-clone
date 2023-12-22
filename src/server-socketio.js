@@ -28,6 +28,33 @@ app.get("/*", (req, res) => res.redirect("/")) // 어떠한 요청이 와도 hom
 const server = http.createServer(app)
 const ioServer = SocketIO(server) // http://localhost:3000/socket.io/socket.io.js 접속이 가능해진다.
 
+/**
+ * public Room key(room id) 배열 반환
+ * adapter로 부터 rooms와 sids를 활용
+ * sids의 key 비교하여 undefined일 경우 배열에 추가후 반환
+ */
+function publicRooms() {
+  console.log(ioServer.sockets.adapter)
+  console.log(ioServer.sockets.adapter.rooms)
+  console.log(ioServer.sockets.adapter.sids)
+
+  // const rooms =  ioServer.sockets.adapter.rooms; //map 데이터...
+  // const sids =  ioServer.sockets.adapter.sids;
+
+  
+  // const {sockets: {adapter: {sids, rooms}}} = ioServer;
+  const {sids, rooms} = ioServer.sockets.adapter; // 구조 분해 할당 문법
+
+  rooms.forEach((_, key)=>{
+    const publicRooms = []
+    if(sids.get(key) === undefined) { // public room key일 경우
+      publicRooms.push(key)
+    }
+  })
+
+  return publicRooms
+}
+
 let connectCount = 0; // 방에 연결된 사람 수
 ioServer.on("connection", socket => {
   
@@ -35,6 +62,7 @@ ioServer.on("connection", socket => {
      * onAny(미들웨어) 어느 이벤트이든지 console.log할 수 있다.
      */
   socket.onAny((event)=> {
+
     console.dir(`Socket Event: ${event}`)
   })
   /**
