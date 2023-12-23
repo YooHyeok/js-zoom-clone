@@ -7,8 +7,11 @@ html(lang="ko")
     link(rel="stylesheet", href="https://unpkg.com/mvp.css")
   body
     header
-      h1 Noom - SocketIO
+      h1 Noom - webRTC
     main
-
+      div#myStream
+        video#myFace(autoplay, playsinline, width="400", height="400")
+        button#mute Mute
+        button#camera Turn Camera OFF
     script(src="/socket.io/socket.io.js")
     script(src="/public/js/app-webRTC.js")
