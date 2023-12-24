@@ -34,18 +34,30 @@ async function getCameras() {
  * getUserMedia() : 컴퓨터 혹은 모바일이 가지고 있는 미디어 스트림을 알려준다.
  * 
  */
-async function getMedia() {
+async function getMedia(deviceId) {
+
+  const initialConstraints = {
+    audio: true,
+    video: { facingMode: "user" }
+  }
+
+  const cameraConstraints = {
+    audio: true,
+    video: { deviceId: { exact: deviceId } } // exact옵션 : 해당 id가 없다면 다른 카메라를 자동으로 연결하지 않고 출력하지않는다.
+  }
   try {
-    myStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
     myFace.srcObject = myStream;
-    await getCameras();
+    myStream = await navigator.mediaDevices.getUserMedia(deviceId? cameraConstraints: initialConstraints)
+    myFace.srcObject = myStream;
+    console.log(!deviceId)
+    if(!deviceId) await getCameras(); //데이터가 들어오지 않았을 경우에 목록 출력 (!undefined == true)
   } catch (error) {
     console.log(error)
   }
 }
 getMedia();
 
-function handleMuteClick(event) {
+function handleMuteClick() {
   myStream.getAudioTracks().forEach(track=>{
     track.enabled = !track.enabled
   })
@@ -58,7 +70,7 @@ function handleMuteClick(event) {
   muted = !muted
 }
 
-function handleCameraClick(event) {
+function handleCameraClick() {
   myStream.getVideoTracks().forEach(track=>{
     console.log(track)
     track.enabled = !track.enabled
@@ -73,5 +85,10 @@ function handleCameraClick(event) {
 
 }
 
+async function handleCameraChange() {
+  await getMedia(camerasSelect.value)
+}
+
 muteBtn.addEventListener("click", handleMuteClick)
 cameraBtn.addEventListener("click", handleCameraClick)
+camerasSelect.addEventListener("input", handleCameraChange)
