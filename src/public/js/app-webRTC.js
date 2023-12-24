@@ -9,6 +9,25 @@ let myStream;
 let muted = false;
 let cameraOff = false;
 
+/**
+ * 카메라 목록 콤보 할당
+ * enumerateDevices() : 컴퓨터 혹은 모바일이 가지고 있는 모든 장치를 알려준다.
+ * 
+ */
+async function getCameras() {
+  try {
+    const devices = navigator.mediaDevices.enumerateDevices();
+    const cameras = (await devices).filter(device => device.kind === "videoinput")
+    cameras.forEach(camera => {
+      const option = document.createElement("option")
+      option.value = camera.deviceId;
+      option.innerText = camera.label
+      camerasSelect.appendChild(option)
+    })
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 /**
  * 미디어 스트림 비디오 할당
@@ -19,6 +38,7 @@ async function getMedia() {
   try {
     myStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
     myFace.srcObject = myStream;
+    await getCameras();
   } catch (error) {
     console.log(error)
   }
