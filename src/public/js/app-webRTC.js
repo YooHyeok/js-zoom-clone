@@ -16,8 +16,8 @@ let cameraOff = false;
  */
 async function getCameras() {
   try {
-    const devices = navigator.mediaDevices.enumerateDevices();
-    const cameras = (await devices).filter(device => device.kind === "videoinput")
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter(device => device.kind === "videoinput")
     const currentCamera = myStream.getVideoTracks()[0] //현재 선택된 카메라 조회
     cameras.forEach(camera => {
       const option = document.createElement("option")
