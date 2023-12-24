@@ -18,10 +18,14 @@ async function getCameras() {
   try {
     const devices = navigator.mediaDevices.enumerateDevices();
     const cameras = (await devices).filter(device => device.kind === "videoinput")
+    const currentCamera = myStream.getVideoTracks()[0] //현재 선택된 카메라 조회
     cameras.forEach(camera => {
       const option = document.createElement("option")
       option.value = camera.deviceId;
       option.innerText = camera.label
+      if(currentCamera.label === camera.label) { // 현재 선택한 카메라 라벨과 일치하는 카메라에 selected옵션 추가
+        option.selected = true;
+      }
       camerasSelect.appendChild(option)
     })
   } catch (error) {
@@ -49,7 +53,6 @@ async function getMedia(deviceId) {
     myFace.srcObject = myStream;
     myStream = await navigator.mediaDevices.getUserMedia(deviceId? cameraConstraints: initialConstraints)
     myFace.srcObject = myStream;
-    console.log(!deviceId)
     if(!deviceId) await getCameras(); //데이터가 들어오지 않았을 경우에 목록 출력 (!undefined == true)
   } catch (error) {
     console.log(error)
