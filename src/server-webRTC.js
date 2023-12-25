@@ -21,11 +21,17 @@ const server = http.createServer(app)
 const rtcServer = new Server(server) 
 
 rtcServer.on("connection", socket => {
+  
   socket.on("join_room", (roomname, callback)=>{
     socket.join(roomname)
     callback();
     socket.to(roomname).emit("welcome")
   })
+
+  socket.on("offer", (offer, roomname) => {
+    socket.to(roomname).emit("offer", offer)
+  })
+
 })
 const handleListen = () => console.log(`Listening on http://localhost:${port}`)
 server.listen(port, handleListen)

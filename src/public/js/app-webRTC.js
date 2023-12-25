@@ -8,7 +8,7 @@ const camerasSelect = document.getElementById("cameras")
 let myStream;
 let muted = false;
 let cameraOff = false;
-
+let myPeerConnection;
 /**
  * 카메라 목록 콤보 할당
  * enumerateDevices() : 컴퓨터 혹은 모바일이 가지고 있는 모든 장치를 알려준다.
@@ -119,10 +119,11 @@ let roomname;
  * welcome 영역 숨김
  * call 영역 숨김해제
 */
-function startMedia() {
+async function startMedia() {
   welcome.hidden = true
   call.hidden = false
-  getMedia();
+  await getMedia();
+  makeConnection();
 }
 
 /**
@@ -142,6 +143,40 @@ function handleWelcomeSubmit(event) {
 welcomeForm.addEventListener("submit", handleWelcomeSubmit)
 
 /* =========================== Socket 시작 =================================================================> */
-socket.on("welcome", () => {
+
+/**
+ * [peer B] (가장 최초로 들어오는 peer A는 이 작업이 생략된다)
+ * peer B 정보, 입장 방 정보 서버로 전송
+ * peer 연결 객체로부터 Offer 생성
+ * 생성한 offer를 다시 peer연결 객체에 저장
+ * 서버에 offer과 방이름 전송
+ * offer가 주고 받아진 순간 직접적으로 대화가 가능해진다.
+ */
+socket.on("welcome", async () => {
   console.log("someone Joined!")
+  const offer = await myPeerConnection.createOffer(); //다른 브라우저가 참가할 수 있는 초대장과 같은 개념
+  myPeerConnection.setLocalDescription(offer)
+  console.log("send the offer")
+  socket.emit("offer", offer, roomname)
 })
+
+/**
+ * [B를 제외한 모든 peer] (최초 입장 peer A포함)
+ * peer B 정보 서버로부터 수신
+ * peer A 정보 모든 peer에게 전송
+ */
+socket.on("offer", (offer)=>{
+  console.log(offer)
+})
+
+/* =========================== webRTC 시작 =================================================================> */
+
+/**
+ * 
+ */
+function makeConnection(){
+  myPeerConnection = new RTCPeerConnection(); //peer to peer connection 생성
+  myStream.getTracks()
+  .forEach(track => myPeerConnection.addTrack(track, myStream)) // connection에 비디오, 오디오 stream 추가
+  console.log(myPeerConnection)
+}
