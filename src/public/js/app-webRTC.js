@@ -143,7 +143,7 @@ async function handleWelcomeSubmit(event) {
 }
 welcomeForm.addEventListener("submit", handleWelcomeSubmit)
 
-/* =========================== Socket 시작 =================================================================> */
+/* ================= Socket Signaling 시작 =================================================================> */
 
 /**
  * [peer A]
@@ -153,14 +153,14 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit)
  * 서버에 offer과 방이름 전송
  * offer가 주고 받아진 순간 직접적으로 대화가 가능해진다.
  * 
- * (가장 최초로 들어오는 peer는 SDP를 수집만 하고 offer 전송은 생략된다.)
+ * (가장 최초로 들어오는 peer는 SDP를 수집만 하고 offer 전송은 생략된다. - 해당 방에 offer를 받을 사람이 없기 때문에.)
  * 
  */
 socket.on("welcome", async () => {
   console.log("someone Joined!")
   const offer = await myPeerConnection.createOffer(); // 수신자에게 전달할 SDP 생성
   myPeerConnection.setLocalDescription(offer) // signaling을 위한 SDP수집 (전역으로 저장함으로써 다른 피어 접속시 해당 변수를 통해 통신설정 협상)
-  console.log("send the offer")
+  console.log("sent the offer")
   socket.emit("offer", offer, roomname) // 서버에게 peer to peer signaling
 })
 
@@ -171,11 +171,12 @@ socket.on("welcome", async () => {
  * peer B 정보 모든 peer에게 전송
  */
 socket.on("offer", async (offer)=>{
+  console.log("received the offer")
   myPeerConnection.setRemoteDescription(offer)
   const answer = await myPeerConnection.createAnswer();
   myPeerConnection.setLocalDescription(answer)
   socket.emit("answer", answer, roomname)
-  console.log(answer)
+  console.log("sent the answer")
 })
 
 /**
@@ -183,16 +184,46 @@ socket.on("offer", async (offer)=>{
  * B로 부터 받은 answer setRemoteDescription 작업
  */
 socket.on("answer", async (answer)=>{
+  console.log("received the answer")
+
   myPeerConnection.setRemoteDescription(answer)
+})
+
+/**
+ * 서버로부터 상대방 peer의 candidate 프로토컬 정보 반환받는다.
+ * 해당 프로토컬 정보를 나의 피어연결객체에 추가한다.
+ */
+socket.on('ice', ice=>{
+  console.log("received candidate")
+  myPeerConnection.addIceCandidate(ice)
 })
 
 /* =========================== webRTC 시작 =================================================================> */
 
 /**
- * 
+ * icecandidate이벤트 핸들러 콜백 함수
+ * candidate 프로토콜을 서버로 전송한다.
+ * setLocalDescript에 의해 로컬 피어가 연결에 추가된 이후
+ * icecandidate이벤트가 트리거된다.
+ * @param {*} data 
  */
-function makeConnection(){
+function handleIce(data) {
+  console.log("sent candidate")
+  socket.emit("ice", data.candidate, roomname)
+}
+
+/**
+ * RTC Peer Connection 객체 생성
+ * 현재 접속한 클라이언트의 비디오, 오디오 스트림을 생성한 객체에 주입한다.
+ */
+async function makeConnection(){
   myPeerConnection = new RTCPeerConnection(); //peer to peer connection 생성
+  /**
+   * addEventListener은 해당 이벤트가 발생할 때 마다 콜백함수를 호출하기 위해 등록하는것이기 때문에
+   * makeConnection 함수가 종료 한지 한참 뒤에 해당 이벤트가 발생하여도
+   * 등록된 콜백 함수가 정상적으로 실행된다.
+   */
+  myPeerConnection.addEventListener("icecandidate", handleIce) // setLocalDescription에 의해 로컬 피어가 연결에 추가되면 ICE Candidate 이벤트가 트리거
   myStream.getTracks()
   .forEach(track => myPeerConnection.addTrack(track, myStream)) // connection에 비디오, 오디오 stream 추가
 }
