@@ -230,7 +230,31 @@ function handleAddStream(data) {
  * 현재 접속한 클라이언트의 비디오, 오디오 스트림을 생성한 객체에 주입한다.
  */
 async function makeConnection(){
-  myPeerConnection = new RTCPeerConnection(); //peer to peer connection 생성
+  myPeerConnection = new RTCPeerConnection();//peer to peer connection 생성
+  /**
+   * stun 서버 생성
+   * stun 서버를 통해 공용 IP주소를 찾는다.
+   * 서로 다른 wifi (데이터) 다른 네트워크일 경우 기기를 서로 찾을 수 없다.
+   * stun서버에서 어떠한 것을 request 요청하면 인터넷을 통해 내가 누군지 알려주는 서비스이다.
+   * 현재 device에 연결된 네트워크의 공용(public) ip주소를 알아낸다.
+   * 모바일 등의 기기 호환에 대한 테스트용도로만 사용한다.
+   * 
+   */
+  const stunServer = {iceServers: 
+    [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+          "stun:stun4.l.google.com:19302",
+          ],
+      },
+    ],
+  }
+  // myPeerConnection = new RTCPeerConnection(stunServer) //stun server 적용
+
   /**
    * addEventListener은 해당 이벤트가 발생할 때 마다 콜백함수를 호출하기 위해 등록하는것이기 때문에
    * makeConnection 함수가 종료 한지 한참 뒤에 해당 이벤트가 발생하여도
