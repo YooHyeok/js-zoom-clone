@@ -213,6 +213,16 @@ function handleIce(data) {
 }
 
 /**
+ * peer 즉, 상대방의 stream 저장
+ * @param {*} data 
+ */
+function handleAddStream(data) {
+  console.log("get an event from my peer")
+  const peerFace = document.getElementById("peerFace")
+  peerFace.srcObject = data.stream
+}
+
+/**
  * RTC Peer Connection 객체 생성
  * 현재 접속한 클라이언트의 비디오, 오디오 스트림을 생성한 객체에 주입한다.
  */
@@ -224,6 +234,9 @@ async function makeConnection(){
    * 등록된 콜백 함수가 정상적으로 실행된다.
    */
   myPeerConnection.addEventListener("icecandidate", handleIce) // setLocalDescription에 의해 로컬 피어가 연결에 추가되면 ICE Candidate 이벤트가 트리거
+  // myPeerConnection.addEventListener("addstream", handleAddStream) // stream에 addTrack로 stream이 추가되었을때 이벤트가 발생한다.
+  myPeerConnection.addEventListener("track", handleAddStream) // addstream이벤트 deprecated 대체 이벤트
+
   myStream.getTracks()
   .forEach(track => myPeerConnection.addTrack(track, myStream)) // connection에 비디오, 오디오 stream 추가
 }
