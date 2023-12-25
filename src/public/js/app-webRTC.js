@@ -8,6 +8,7 @@ const camerasSelect = document.getElementById("cameras")
 let myStream;
 let muted = false;
 let cameraOff = false;
+let roomname;
 
 /**
  * 카메라 목록 콤보 할당
@@ -58,7 +59,6 @@ async function getMedia(deviceId) {
     console.log(error)
   }
 }
-getMedia();
 
 function handleMuteClick() {
   myStream.getAudioTracks().forEach(track=>{
@@ -95,3 +95,41 @@ async function handleCameraChange() {
 muteBtn.addEventListener("click", handleMuteClick)
 cameraBtn.addEventListener("click", handleCameraClick)
 camerasSelect.addEventListener("input", handleCameraChange)
+
+/* welcome form 시작 */
+const welcome = document.getElementById("welcome")
+const welcomeForm = welcome.querySelector("form")
+const call = document.getElementById("call")
+call.hidden = true
+
+/**
+ * 영역 전환 효과 후 미디어 스트림 저장
+ * welcome 영역 숨김
+ * call 영역 숨김해제
+ */
+function startMedia() {
+  welcome.hidden = true
+  call.hidden = false
+  getMedia();
+}
+
+/**
+ * Enter Room Btn 클릭 이벤트 함수
+ * 입력란 방정보 데이터를 서버에 전송한다
+ * 전송후 서버측에서 전달받은 콜백함수 startMedia를호출 
+ * 영역을 전환함으로써 방 입장 효과를 준다
+ * @param {*} event 
+ */
+function handleWelcomeSubmit(event) {
+  event.preventDefault();
+  const input = this.querySelector("input")
+  roomname = input.value;
+  socket.emit("join_room", roomname, startMedia)
+  input.value = ""
+}
+welcomeForm.addEventListener("submit", handleWelcomeSubmit)
+
+/* Socket 시작 */
+socket.on("welcome", () => {
+  console.log("someone Joined!")
+})

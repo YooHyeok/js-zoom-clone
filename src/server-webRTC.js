@@ -20,5 +20,12 @@ app.get("/*", (req, res) => res.redirect("/"))
 const server = http.createServer(app)
 const rtcServer = new Server(server) 
 
+rtcServer.on("connection", socket => {
+  socket.on("join_room", (roomname, callback)=>{
+    socket.join(roomname)
+    callback();
+    socket.to(roomname).emit("welcome")
+  })
+})
 const handleListen = () => console.log(`Listening on http://localhost:${port}`)
 server.listen(port, handleListen)
