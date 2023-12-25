@@ -185,7 +185,6 @@ socket.on("offer", async (offer)=>{
  */
 socket.on("answer", async (answer)=>{
   console.log("received the answer")
-
   myPeerConnection.setRemoteDescription(answer)
 })
 
@@ -219,7 +218,7 @@ function handleIce(data) {
 function handleAddStream(data) {
   console.log("get an event from my peer")
   const peerFace = document.getElementById("peerFace")
-  peerFace.srcObject = data.stream
+  peerFace.srcObject = data.streams[0]
 }
 
 /**
