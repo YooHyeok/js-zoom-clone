@@ -22,9 +22,8 @@ const rtcServer = new Server(server)
 
 rtcServer.on("connection", socket => {
   
-  socket.on("join_room", (roomname, callback)=>{
+  socket.on("join_room", async (roomname)=>{
     socket.join(roomname)
-    callback();
     socket.to(roomname).emit("welcome")
   })
 

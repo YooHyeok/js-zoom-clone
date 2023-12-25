@@ -119,7 +119,7 @@ let roomname;
  * welcome 영역 숨김
  * call 영역 숨김해제
 */
-async function startMedia() {
+async function initCall() {
   welcome.hidden = true
   call.hidden = false
   await getMedia();
@@ -133,11 +133,12 @@ async function startMedia() {
  * 영역을 전환함으로써 방 입장 효과를 준다
  * @param {*} event 
 */
-function handleWelcomeSubmit(event) {
+async function handleWelcomeSubmit(event) {
   event.preventDefault();
   const input = this.querySelector("input")
   roomname = input.value;
-  socket.emit("join_room", roomname, startMedia)
+  await initCall()
+  socket.emit("join_room", roomname)
   input.value = ""
 }
 welcomeForm.addEventListener("submit", handleWelcomeSubmit)
@@ -145,28 +146,32 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit)
 /* =========================== Socket 시작 =================================================================> */
 
 /**
- * [peer B] (가장 최초로 들어오는 peer A는 이 작업이 생략된다)
- * peer B 정보, 입장 방 정보 서버로 전송
+ * [peer A] 
+ * peer A 정보, 입장 방 정보 서버로 전송
  * peer 연결 객체로부터 Offer 생성
  * 생성한 offer를 다시 peer연결 객체에 저장
  * 서버에 offer과 방이름 전송
  * offer가 주고 받아진 순간 직접적으로 대화가 가능해진다.
+ * 
+ * (가장 최초로 들어오는 peer는 SDP를 수집만 하고 offer 전송은 생략된다.)
+ * 
  */
 socket.on("welcome", async () => {
   console.log("someone Joined!")
-  const offer = await myPeerConnection.createOffer(); //다른 브라우저가 참가할 수 있는 초대장과 같은 개념
-  myPeerConnection.setLocalDescription(offer)
+  const offer = await myPeerConnection.createOffer(); // 수신자에게 전달할 SDP 생성
+  myPeerConnection.setLocalDescription(offer) // signaling을 위한 SDP수집 (전역으로 저장함으로써 다른 피어 접속시 해당 변수를 통해 통신설정 협상)
   console.log("send the offer")
-  socket.emit("offer", offer, roomname)
+  socket.emit("offer", offer, roomname) // 서버에게 peer to peer signaling
 })
 
 /**
- * [B를 제외한 모든 peer] (최초 입장 peer A포함)
- * peer B 정보 서버로부터 수신
- * peer A 정보 모든 peer에게 전송
+ * [peer B] A를 제외한 모든 peer (최초 입장 peer 포함)
+ * peer A 정보 서버로부터 수신
+ * peer B 정보 모든 peer에게 전송
  */
 socket.on("offer", (offer)=>{
   console.log(offer)
+  myPeerConnection.setRemoteDescription(offer)
 })
 
 /* =========================== webRTC 시작 =================================================================> */
