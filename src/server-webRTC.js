@@ -30,6 +30,9 @@ rtcServer.on("connection", socket => {
   socket.on("offer", (offer, roomname) => {
     socket.to(roomname).emit("offer", offer)
   })
+  socket.on("answer", (answer, roomname) => {
+    socket.to(roomname).emit("answer", answer)
+  })
 
 })
 const handleListen = () => console.log(`Listening on http://localhost:${port}`)

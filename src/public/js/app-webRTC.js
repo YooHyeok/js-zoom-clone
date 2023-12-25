@@ -146,7 +146,7 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit)
 /* =========================== Socket 시작 =================================================================> */
 
 /**
- * [peer A] 
+ * [peer A]
  * peer A 정보, 입장 방 정보 서버로 전송
  * peer 연결 객체로부터 Offer 생성
  * 생성한 offer를 다시 peer연결 객체에 저장
@@ -165,13 +165,25 @@ socket.on("welcome", async () => {
 })
 
 /**
- * [peer B] A를 제외한 모든 peer (최초 입장 peer 포함)
+ * [peer B] A를 제외한 모든 peer 대상 (최초 입장 peer 포함)
  * peer A 정보 서버로부터 수신
+ * setRemoteDescription
  * peer B 정보 모든 peer에게 전송
  */
-socket.on("offer", (offer)=>{
-  console.log(offer)
+socket.on("offer", async (offer)=>{
   myPeerConnection.setRemoteDescription(offer)
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer)
+  socket.emit("answer", answer, roomname)
+  console.log(answer)
+})
+
+/**
+ * [peer A] B를 제외한 모든 peer 대상
+ * B로 부터 받은 answer setRemoteDescription 작업
+ */
+socket.on("answer", async (answer)=>{
+  myPeerConnection.setRemoteDescription(answer)
 })
 
 /* =========================== webRTC 시작 =================================================================> */
@@ -183,5 +195,4 @@ function makeConnection(){
   myPeerConnection = new RTCPeerConnection(); //peer to peer connection 생성
   myStream.getTracks()
   .forEach(track => myPeerConnection.addTrack(track, myStream)) // connection에 비디오, 오디오 stream 추가
-  console.log(myPeerConnection)
 }
