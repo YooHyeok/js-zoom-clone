@@ -9,6 +9,8 @@ let myStream;
 let muted = false;
 let cameraOff = false;
 let myPeerConnection;
+let myDataChannel;
+
 /**
  * 카메라 목록 콤보 할당
  * enumerateDevices() : 컴퓨터 혹은 모바일이 가지고 있는 모든 장치를 알려준다.
@@ -157,11 +159,16 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit)
  * 서버에 offer과 방이름 전송
  * offer가 주고 받아진 순간 직접적으로 대화가 가능해진다.
  * 
- * (가장 최초로 들어오는 peer는 SDP를 수집만 하고 offer 전송은 생략된다. - 해당 방에 offer를 받을 사람이 없기 때문에.)
- * 
+ * (가장 최초로 들어오는 peer는 입장한 room에 아무도 없기 때문에 
+ * welcome emit 이벤트가 발생하지만 콜백 함수는 실행되지 않는다.)
  */
 socket.on("welcome", async () => {
   console.log("someone Joined!")
+  /* 데이터 채널 생성 */
+  // 무언가를 offer하는 socket이 dataChannel을 생성하는 주체가 되어야 하며 offer 생성 전에 생성해야한다.
+  myDataChannel = myPeerConnection.createDataChannel("chat") 
+  myDataChannel.addEventListener("message", event => console.log(event.data))
+  console.log("made data channel")
   const offer = await myPeerConnection.createOffer(); // 수신자에게 전달할 SDP 생성
   myPeerConnection.setLocalDescription(offer) // signaling을 위한 SDP수집 (전역으로 저장함으로써 다른 피어 접속시 해당 변수를 통해 통신설정 협상)
   console.log("sent the offer")
@@ -175,6 +182,10 @@ socket.on("welcome", async () => {
  * peer B 정보 모든 peer에게 전송
  */
 socket.on("offer", async (offer)=>{
+  myPeerConnection.addEventListener("datachannel", event => {
+    myDataChannel = event.channel;
+    myDataChannel.addEventListener("message", event => console.log(event.data))
+  })
   console.log("received the offer")
   myPeerConnection.setRemoteDescription(offer)
   const answer = await myPeerConnection.createAnswer();
